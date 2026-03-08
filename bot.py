@@ -9,8 +9,8 @@ from aiogram.types import Message
 from aiogram.enums import ParseMode
 
 # === НАСТРОЙКИ ===
-TOKEN = "YOUR_BOT_TOKEN"                 # Токен бота
-ALLOWED_CHAT_ID = -1001234567890          # ID вашей группы (отрицательное число)
+TOKEN = "8693997731:AAH9h0QzXksHXnCEX9a01g3q6R7S0X8bjB4"                 # Токен бота
+ALLOWED_CHAT_ID = -1002707885564          # ID вашей группы (отрицательное число)
 COOLDOWN_SECONDS = 300                     # 5 минут
 DATA_FILE = "curator_levels.json"          # Файл для хранения данных
 # =================
