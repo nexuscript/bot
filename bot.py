@@ -1,54 +1,82 @@
-import logging
-import random
+import asyncio
 import json
-import os
+import random
 import time
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import os
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command, CommandObject
+from aiogram.types import Message
+from aiogram.enums import ParseMode
 
-# ===== НАСТРОЙКИ =====
-ALLOWED_CHAT_ID = -1002707885564   # ID вашей группы (замените!)
-COOLDOWN_SECONDS = 300              # 5 минут
-DATA_FILE = 'curator_levels.json'   # файл для хранения данных
-TOKEN = '8693997731:AAH9h0QzXksHXnCEX9a01g3q6R7S0X8bjB4'            # токен бота (замените!)
-# =====================
+# === НАСТРОЙКИ ===
+TOKEN = "YOUR_BOT_TOKEN"                 # Токен бота
+ALLOWED_CHAT_ID = -1001234567890          # ID вашей группы (отрицательное число)
+COOLDOWN_SECONDS = 300                     # 5 минут
+DATA_FILE = "curator_levels.json"          # Файл для хранения данных
+# =================
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+# Инициализация бота и диспетчера
+bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)  # можно использовать HTML для форматирования
+dp = Dispatcher()
 
-# Загрузка данных из файла
+# Загрузка данных
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
-# Сохранение данных в файл
+# Сохранение данных
 def save_data(data):
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # Глобальный словарь с данными пользователей
 user_data = load_data()
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Проверяем, что сообщение из разрешённого чата
-    if update.effective_chat.id != ALLOWED_CHAT_ID:
+@dp.message(Command("start"))
+async def cmd_start(message: Message):
+    if message.chat.id != ALLOWED_CHAT_ID:
+        return
+    await message.answer(
+        "👋 Бот работает!\n"
+        "Напишите «куратор» в чат, чтобы повысить свой уровень (раз в 5 минут).\n"
+        "Команда /top покажет лучших кураторов группы."
+    )
+
+@dp.message(Command("top"))
+async def cmd_top(message: Message):
+    if message.chat.id != ALLOWED_CHAT_ID:
         return
 
-    # Игнорируем сообщения без текста
-    if not update.message or not update.message.text:
+    # Сортируем пользователей по убыванию уровня
+    sorted_users = sorted(user_data.items(), key=lambda item: item[1]['level'], reverse=True)
+
+    if not sorted_users:
+        await message.answer("📊 Пока нет данных о кураторах.")
         return
 
-    # Проверяем наличие слова "куратор"
-    text = update.message.text.lower()
-    if 'куратор' not in text:
+    top_count = min(10, len(sorted_users))
+    lines = ["🏆 <b>Топ кураторов:</b>"]
+    for i in range(top_count):
+        user_id, data = sorted_users[i]
+        name = data.get('name', f"Пользователь {user_id}")
+        level = data['level']
+        lines.append(f"{i+1}. {name} — {level}")
+
+    await message.answer("\n".join(lines), parse_mode=ParseMode.HTML)
+
+@dp.message()
+async def handle_message(message: Message):
+    # Проверяем, что сообщение из разрешённой группы и содержит текст
+    if message.chat.id != ALLOWED_CHAT_ID or not message.text:
         return
 
-    user = update.message.from_user
+    # Проверяем наличие слова "куратор" (регистронезависимо)
+    if "куратор" not in message.text.lower():
+        return
+
+    user = message.from_user
     user_id = str(user.id)
     now = time.time()
 
@@ -56,75 +84,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id in user_data:
         last = user_data[user_id].get('last_increase', 0)
         if now - last < COOLDOWN_SECONDS:
-            return  # слишком рано, игнорируем
+            return  # ещё не прошло 5 минут – игнорируем
 
     # Генерируем прирост
     increase = random.randint(1, 10)
 
-    # Обновляем или создаём запись
+    # Если пользователя нет в базе – создаём запись
     if user_id not in user_data:
         user_data[user_id] = {'level': 0, 'last_increase': 0, 'name': ''}
 
+    # Обновляем уровень и время
     user_data[user_id]['level'] += increase
     user_data[user_id]['last_increase'] = now
 
     # Сохраняем имя пользователя (для топа)
-    name = user.first_name
-    if user.last_name:
-        name += ' ' + user.last_name
-    user_data[user_id]['name'] = name
+    full_name = user.full_name  # Имя + фамилия, если есть
+    user_data[user_id]['name'] = full_name
 
     # Сохраняем данные в файл
     save_data(user_data)
 
-    # Отвечаем в группу
+    # Формируем ответ
     new_level = user_data[user_id]['level']
-    response = f"{name} уровень кураторства повышен💼, новый уровень: {new_level}"
-    await update.message.reply_text(response)
+    # Используем красивые эмодзи (можно заменить на другие)
+    response = f"{full_name} уровень кураторства повышен💼, новый уровень: {new_level}"
+    await message.reply(response)
 
-async def top_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Только для разрешённого чата
-    if update.effective_chat.id != ALLOWED_CHAT_ID:
-        return
+async def main():
+    print("Бот запущен и слушает сообщения...")
+    await dp.start_polling(bot)
 
-    # Сортируем по убыванию уровня
-    sorted_users = sorted(user_data.items(), key=lambda item: item[1]['level'], reverse=True)
-
-    if not sorted_users:
-        await update.message.reply_text("Пока нет данных о кураторах.")
-        return
-
-    # Топ-10
-    top_count = min(10, len(sorted_users))
-    lines = ["🏆 Топ кураторов:"]
-    for i in range(top_count):
-        user_id, data = sorted_users[i]
-        name = data.get('name', f"Пользователь {user_id}")
-        level = data['level']
-        lines.append(f"{i+1}. {name} — {level}")
-
-    await update.message.reply_text("\n".join(lines))
-
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat.id != ALLOWED_CHAT_ID:
-        return
-    await update.message.reply_text(
-        "Бот работает!\n"
-        "Напишите «куратор» в чат, чтобы повысить свой уровень (раз в 5 минут).\n"
-        "Команда /top покажет лучших кураторов группы."
-    )
-
-def main():
-    # Создаём приложение
-    application = Application.builder().token(TOKEN).build()
-
-    # Регистрируем обработчики
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("top", top_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Запускаем бота
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    asyncio.run(main())
