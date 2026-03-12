@@ -1,2 +1,1 @@
-aiosqlite
-aiogram
+python-telegram-bot
