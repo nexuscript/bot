@@ -38,13 +38,13 @@ from scipy.signal import lfilter, resample_poly
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID", "")
-CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "10"))
+CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "30"))
 # После стольких неудачных попыток трек помечается пропущенным навсегда.
 # Защищает от бесконечного цикла, если процесс жёстко убивают (например OOM-killer).
-MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "3"))
+MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "5"))
 # Bypass-детект: трек считается "пробившим" лимиты, если громче этих порогов
 BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-3"))
-BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "4"))
+BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "3"))
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "posted.db")
 FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 
