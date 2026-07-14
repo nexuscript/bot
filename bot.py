@@ -43,12 +43,12 @@ BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID", "")
 # 0 = непрерывная проверка (запрос за запросом без пауз).
 # При 429 от Roblox поллер сам выждет указанный сервером Retry-After и продолжит.
-CHECK_INTERVAL = float(os.environ.get("CHECK_INTERVAL", "0"))
+CHECK_INTERVAL = float(os.environ.get("CHECK_INTERVAL", "10"))
 # Публиковать только bypassed-треки (громче порогов ниже). "0" — постить все.
 ONLY_BYPASSED = os.environ.get("ONLY_BYPASSED", "1") != "0"
 # После стольких неудачных попыток трек помечается пропущенным навсегда.
 # Защищает от бесконечного цикла, если процесс жёстко убивают (например OOM-killer).
-MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "3"))
+MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "5"))
 # Bypass-детект: трек считается "пробившим" лимиты, если громче этих порогов
 BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-2"))
 BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "6"))
