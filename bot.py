@@ -38,7 +38,7 @@ from scipy.signal import lfilter, resample_poly
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID", "")
-CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "60"))
+CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "120"))
 # После стольких неудачных попыток трек помечается пропущенным навсегда.
 # Защищает от бесконечного цикла, если процесс жёстко убивают (например OOM-killer).
 MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "5"))
