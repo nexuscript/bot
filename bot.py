@@ -43,8 +43,8 @@ CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "60"))
 # Защищает от бесконечного цикла, если процесс жёстко убивают (например OOM-killer).
 MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "5"))
 # Bypass-детект: трек считается "пробившим" лимиты, если громче этих порогов
-BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-3"))
-BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "3"))
+BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-5"))
+BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "5"))
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "posted.db")
 FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 
