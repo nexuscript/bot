@@ -50,8 +50,8 @@ ONLY_BYPASSED = os.environ.get("ONLY_BYPASSED", "1") != "0"
 # Защищает от бесконечного цикла, если процесс жёстко убивают (например OOM-killer).
 MAX_ATTEMPTS = int(os.environ.get("MAX_ATTEMPTS", "3"))
 # Bypass-детект: трек считается "пробившим" лимиты, если громче этих порогов
-BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-3"))
-BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "4"))
+BYPASS_LUFS = float(os.environ.get("BYPASS_LUFS", "-2"))
+BYPASS_PEAK_DB = float(os.environ.get("BYPASS_PEAK_DB", "6"))
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "posted.db")
 FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 
